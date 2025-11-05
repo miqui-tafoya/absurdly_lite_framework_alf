@@ -1,0 +1,23 @@
+    public function setIds() {
+        $col = ['columna_id'];
+        $data = $this->db->dbCall('all', false, $col, 'tabla_db');
+        $temp = [];
+        foreach ($data as $value) {
+            array_push($temp, $value['columna_id']);
+        }
+        $this->existe = $temp;
+    }
+    public function validateId($id) {
+        if (empty($id)) {
+            header('Location:' . URL_BASE);
+            exit;
+        }
+    //    $validation = in_array($id, $this->existe, true);
+    //    $validation = in_array((int) $id, $this->existe, true);
+        return $validation;
+    }
+
+    // private function setPropiedad($query) {
+    //    $data = $this->getPropiedad($query);
+    //    $this->propiedad = $data;
+    // }

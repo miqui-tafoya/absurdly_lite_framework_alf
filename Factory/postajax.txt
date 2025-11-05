@@ -1,0 +1,12 @@
+    public function POST_handler_AJAX() {
+        $model = new {{filename}}Model;
+
+        $resultado = $model->getDatosAJAX($_POST['post_data']);
+
+        $data = array(
+            'success' => true,
+            'result' => $resultado
+        );
+
+        echo json_encode($data);
+    }

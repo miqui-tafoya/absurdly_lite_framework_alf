@@ -1,0 +1,21 @@
+namespace Controller;
+
+use View\Render;
+//use Middleware;
+use Model\{
+    Database,
+    {{filename}}Model
+};
+class {{filename}} extends Render {
+{{get}}
+{{post}}
+{{postajax}}
+{{querystring}}
+{{values}}
+
+//////////////////// Funciones secundarias
+
+    //public function process($params) {
+    //  exit;
+    //}
+}

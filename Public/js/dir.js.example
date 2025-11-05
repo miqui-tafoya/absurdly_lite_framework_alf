@@ -1,0 +1,8 @@
+// General
+const URL_BASE = 'http://localhost/production/subdir/'
+const up = '../';
+const URL_PUBLIC = URL_BASE + 'Public/'
+const refresh = 'refresh'
+
+// 
+const log = 'log';
