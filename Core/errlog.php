@@ -1,9 +1,43 @@
-<?php 
+<?php
+/**
+ * Sistema de Registro de Errores (Error Logging)
+ *
+ * Captura y registra todos los errores PHP en archivos de log diarios.
+ * Incluye manejo de errores estándar, warnings, notices y errores fatales.
+ *
+ * CARACTERÍSTICAS:
+ * - Logs organizados por fecha (YYYY-MM-DD.log)
+ * - Captura errores no fatales (warnings, notices, deprecated)
+ * - Captura errores fatales (parse, compile, core errors)
+ * - Muestra mensaje amigable al usuario en caso de error fatal
+ * - Crea automáticamente el directorio de logs si no existe
+ *
+ * UBICACIÓN DE LOGS:
+ * Los archivos de log se guardan en la ruta definida por LOG_DIR (init.php)
+ * Por defecto: Public/logs/
+ *
+ * FORMATO DE LOG:
+ * [YYYY-MM-DD HH:MM:SS] [TIPO_ERROR] mensaje in archivo.php:línea
+ * ----------------------------------------
+ *
+ * @file errlog.php
+ * @version 1.0.0
+ */
+
 // crear directorio
 if (!is_dir(LOG_DIR)) {
     mkdir(LOG_DIR, 0755, true);
 }
 
+/**
+ * Registra un error en el archivo de log diario
+ *
+ * @param string $tipo Tipo de error (ERROR, WARNING, NOTICE, etc.)
+ * @param string $msg Mensaje del error
+ * @param string $file Archivo donde ocurrió el error
+ * @param int $line Línea donde ocurrió el error
+ * @return void
+ */
 function errLog($tipo, $msg, $file, $line) {
     $timestamp = date('Y-m-d H:i:s');
     $archivoLog = LOG_DIR . '/' . date('Y-m-d') . '.log';

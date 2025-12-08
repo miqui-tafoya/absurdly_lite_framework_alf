@@ -1,59 +1,146 @@
 <?php
+/**
+ * Configuración general de la aplicación
+ *
+ * Aquí se definen parámetros globales, como el tipado fuerte, el timezone de tu App, la sesión,
+ * la activación y ruta para herramientas exclusivas del desarrollo o testeo.
+ * También se definen las constantes principales del framework, así como constantes 
+ * importantes para la configuración general, y también constantes para datos secundarios
+ * que pudiera requerir tu proyecto.
+ * Encontrarás también llamadas al autoloader principal del framework, así como opcionalmente al autoloader
+ * de Composer en caso de utilizar librerías de terceros.
+ * 
+ * Es importante no eliminar constantes directamente de aquí, a menos que sepas lo que haces,
+ * de otro modo, simplemente dejarlos como estan, o bien cambiarlos a false, o definirlos como strings en blanco.
+ *
+ * @package PHP Absurdly Lite Framework (PHP-ALF)
+ * @author J. Miguel Tafoya R. (Miqui Tafoya) <taro.miqui@gmail.com>
+ * @version 1.1.1
+ */
+
 // tipado fuerte
 declare(strict_types=1);
-// timezone e inicio de sesión
+// timezone
 date_default_timezone_set("America/Mexico_City");
-session_start();
-
-// herramientas dev
-/* remover de htaccess para no ver reporte de errores:
-  php_flag display_startup_errors
-  php_flag display_errors */
-error_reporting(E_ALL); /*remover para no ver reporte de errores*/
-
-include 'devtools.php'; /*opcional*/
+// session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // constantes primarias
-define('PROYECTO', 'yourproject');
-define('APP_ROOT', dirname(dirname(__FILE__)));
+/**
+ * - APP_ROOT
+ *   Define la ruta absoluta al directorio raíz del proyecto en el sistema de archivos.
+ *
+ * - COREAPP
+ *   Devuelve la ruta absoluta al directorio Core/App del framework, donde reside
+ *   el núcleo de la aplicación.
+ *
+ * - APP_SUBFOLDER
+ *   Define el subdirectorio (relativo a la raíz del servidor web) donde está
+ *   instalado el proyecto.
+ *   - Si el proyecto está instalado directamente en la raíz del servidor web
+ *     (por ejemplo, en `http://localhost/`), este valor puede dejarse en blanco.
+ *   - Si el proyecto comparte la raíz del servidor con otros proyectos
+ *     (por ejemplo, `http://localhost/mi_proyecto/`), aquí se debe indicar
+ *     la ruta completa de ese subdirectorio.
+ *
+ * - APP_PUBLIC
+ *   Devuelve la ruta absoluta al directorio `Public` del framework, utilizado
+ *   para exponer recursos estáticos (CSS, JS, imágenes, etc.) a través del servidor web.
+ *
+ * - URL_SUB
+ *   Define la URL completa del proyecto incluyendo subdirectorios, pensada para
+ *   usarse en la generación de enlaces absolutos dentro de la aplicación.
+ *
+ * - URL_BASE
+ *   Define la URL base del proyecto (host + subdirectorio), a partir de la cual
+ *   se construyen otras URLs internas.
+ *
+ * - URL_PUBLIC
+ *   Define la URL base para acceder a los recursos públicos de este proyecto
+ *   (contenido del directorio `Public`) desde el navegador.
+ *
+ * @var string APP_ROOT
+ * @var string COREAPP
+ * @var string APP_SUBFOLDER
+ * @var string APP_PUBLIC
+ * @var string URL_SUB
+ * @var string URL_BASE
+ * @var string URL_PUBLIC
+ */
+define('APP_ROOT', dirname(__DIR__));
 define('COREAPP', APP_ROOT . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR);
-define('APP_SUBFOLDER', 'production/' . PROYECTO); /* Importante: sustrae este Path del URI al momento de Request */
+define('APP_SUBFOLDER', 'production/absurdly_lite_framework_alf');
 define('APP_PUBLIC', APP_ROOT . DIRECTORY_SEPARATOR . 'Public' . DIRECTORY_SEPARATOR);
-define('URL_SUB', "http://localhost/production/" . PROYECTO . '/');
+define('URL_SUB', "http://localhost/production/absurdly_lite_framework_alf/");
 define('URL_BASE', "http://localhost/" . APP_SUBFOLDER . '/');
 define('URL_PUBLIC', URL_BASE . 'Public/');
 
+// constantes de configuración
+/**
+ * Activación de Autoloader de Composer y del Modo de depuración
+ *
+ * Si COMPOSER está en true, se activa el autoloader de Composer.
+ * Si DEBUG está en true, se muestran errores detallados y se activan herramientas dev opcionales.
+ * Define el mensaje que verán los usuarios para errores fatales del sistema.
+ *
+ * @var bool COMPOSER
+ * @var bool DEBUG
+ * @var string MSG_ERROR
+ */
+define('COMPOSER', false);
+define('DEBUG', true);
+define('MSG_ERROR', 'Error interno del servidor: intenta nuevamente la operación; si el error persiste, por favor contacta a Soporte TI.');
+
 // constantes secundarias
-define('SITE_NAME', 'Proyecto ESI Honduras');
+/**
+ * SITE_NAME define el nombre de tu proyecto
+ * VERSION define la versión de tu proyecto
+ * LOG_DIR define la ruta en donde guardar el Log de errores para tu proyecto
+ *
+ * @var string SITE_NAME
+ * @var string VERSION
+ * @var string LOG_DIR
+ */
+define('SITE_NAME', 'ALF Test Site');
 define('VERSION', 'v1.00');
 define('LOG_DIR', APP_PUBLIC . 'logs');
 
-// constantes HTTP
-const ITEMS = [
+// herramientas dev
+error_reporting(E_ALL);
+if (DEBUG === true) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    include 'devtools.php';
+}
+
+// función para obtener datos HTTP
+function fetchHTTPRequest(array $items): array {
+    $returns = [];
+    foreach ($items as $v) {
+        $returns[$v] = filter_input(INPUT_SERVER, $v, FILTER_SANITIZE_SPECIAL_CHARS);
+    }
+    return $returns;
+}
+
+// include Log de errores
+require_once 'errlog.php';
+
+// include Autoload local (y de Composer en caso de haberlo)
+require_once 'autoload.php';
+if (COMPOSER === true) {
+    require_once APP_PUBLIC . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+}
+
+// directorio de rutas
+require_once 'routes.php';
+
+// prepara App
+$app = new App(fetchHTTPRequest([
     'REDIRECT_STATUS',
     'REQUEST_METHOD',
     'DOCUMENT_ROOT',
     'REQUEST_URI',
     'QUERY_STRING'
-];
-$serverRequest = new class () {
-    public $returns;
-    public function fetchHTTPRequest(array $items) {
-        foreach ($items as $k => $v) {
-            $this->returns[$v] = filter_input(INPUT_SERVER, $v, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-        }
-        return $this->returns;
-    }
-};
-// include Log de errores
-require_once 'errlog.php';
-
-// include Autoload local, y de Composer en caso de haberlo
-require_once 'autoload.php';
-// require_once APP_PUBLIC . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
-
-// Router
-require_once 'routes.php';
-
-// prepara App
-$app = new App($serverRequest->fetchHTTPRequest(ITEMS), $routeList->fetchRoutes());
+]), $routeList->fetchRoutes());

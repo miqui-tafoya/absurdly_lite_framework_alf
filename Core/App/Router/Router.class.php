@@ -1,5 +1,30 @@
 <?php
 
+/**
+ * Router - Enrutador Principal del Sistema
+ *
+ * Resuelve las peticiones HTTP y las dirige al controlador correspondiente.
+ * Maneja rutas estáticas, dinámicas, pseudorutas (funciones), query strings,
+ * modo mantenimiento y validación de modelos.
+ *
+ * FLUJO DE RESOLUCIÓN:
+ * 1. Verifica modo mantenimiento (man.on)
+ * 2. Obtiene método HTTP (GET/POST)
+ * 3. Extrae query string si existe
+ * 4. Limpia y procesa la ruta URI
+ * 5. Determina tipo de ruta (estática/dinámica/función)
+ * 6. Valida existencia de ruta y modelo (rutas dinámicas)
+ * 7. Ejecuta función o delega a MainCtrl
+ *
+ * TIPOS DE RUTAS:
+ * - Estática: '/contacto' → string (incluye Rutas API)
+ * - Dinámica: '/usuario/123' → array ['/usuario/', '123']
+ * - Pseudoruta: función anónima ejecutada directamente (UDF, AJAX)
+ *
+ * @file Router.class.php
+ * @package Router
+ */
+
 namespace Router;
 
 use Controller\MainCtrl;
@@ -18,12 +43,25 @@ class Router {
         $this->maincontroller = new MainCtrl;
     }
 
+    /**
+     * Resuelve la petición HTTP y ejecuta la ruta correspondiente
+     *
+     * Proceso:
+     * 1. Verifica modo mantenimiento (man.on)
+     * 2. Extrae método, URI y query string
+     * 3. Procesa ruta (estática/dinámica/función)
+     * 4. Valida modelo en rutas dinámicas
+     * 5. Ejecuta función o delega a MainCtrl
+     * 6. Redirige a error 404/405 si falla
+     *
+     * @return mixed Resultado del controlador o void
+     */
     public function resolve() {
-        if (file_exists(APP_ROOT . DIRECTORY_SEPARATOR . 'man.on')) { // está en modo mantenimiento?
+        if (file_exists(APP_ROOT . DIRECTORY_SEPARATOR . 'man.on')) {
             header('Location:' . URL_PUBLIC . 'mantenimiento/');
             exit;
         } else {
-            $method = \strtolower($this->serverRequest['REQUEST_METHOD']); // obtiene método solicitado: GET o POST
+            $method = \strtolower($this->serverRequest['REQUEST_METHOD']);
             $query_string = [];
             $raw_path = $this->serverRequest['REQUEST_URI'];
             $get_position = \strpos($raw_path, '?');
@@ -74,6 +112,12 @@ class Router {
         }
     }
 
+    /**
+     * Extrae y parsea el query string de la URI
+     *
+     * @param string $querystring URI completa con query string
+     * @return array Array asociativo con parámetros GET
+     */
     private function parseQuery($querystring) {
         $segmentos = explode('?', $querystring, 2);
         if (count($segmentos) >= 2) {

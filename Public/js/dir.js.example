@@ -1,8 +1,39 @@
-// General
-const URL_BASE = 'http://localhost/production/subdir/'
-const up = '../';
-const URL_PUBLIC = URL_BASE + 'Public/'
-const refresh = 'refresh'
+/**
+ * Configuración General del Sistema - JavaScript
+ *
+ * Este archivo define las constantes globales del sistema para el lado del cliente,
+ * similar a Core/init.php en el lado del servidor. Estas constantes son utilizadas
+ * a lo largo de toda la aplicación para mantener consistencia en las rutas y URLs.
+ *
+ * IMPORTANTE:
+ * - Las URLs definidas aquí deben coincidir con las configuradas en Core/init.php
+ * - Modificar estas constantes afectará todas las peticiones AJAX y rutas del cliente
+ * - Asegúrate de actualizar estas URLs al mover el proyecto a producción
+ *
+ * @file dir.js
+ * @description Archivo de configuración de constantes globales del sistema
+ */
 
-// 
-const log = 'log';
+/**
+ * Ruta relativa para subir un nivel en el árbol de directorios
+ * @constant {string}
+ * @default '../'
+ */
+const up = '../';
+
+/**
+ * URL base del proyecto (Asegúrate de actualizar estas URLs al mover el proyecto a producción)
+ * Debe incluir el protocolo, dominio y subdirectorio si aplica
+ * @constant {string}
+ * @example 'http://localhost/production/absurdly_lite_framework_alf/'
+ * @example 'https://midominio.com/'
+ */
+const URL_BASE = 'http://localhost/production/absurdly_lite_framework_alf/'
+
+/**
+ * URL del directorio público
+ * Contiene todos los assets accesibles desde el navegador (CSS, JS, imágenes, etc.)
+ * @constant {string}
+ * @example 'http://localhost/production/absurdly_lite_framework_alf/Public/'
+ */
+const URL_PUBLIC = URL_BASE + 'Public/'

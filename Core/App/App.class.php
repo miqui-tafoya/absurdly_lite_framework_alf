@@ -16,7 +16,7 @@ class App {
         $this->request = new Request();
         $this->serverRequest = $server;
         $this->routeList = $routes;
-        $this->router = new Router($this->request, $this->serverRequest, $this->routeList); // enrutamiento
+        $this->router = new Router($this->request, $this->serverRequest, $this->routeList);
     }
 
     public function run() {

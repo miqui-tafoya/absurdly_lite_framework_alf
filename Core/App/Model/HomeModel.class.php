@@ -13,5 +13,6 @@ class HomeModel extends Model {
     }
 
     // GETTERS
+    
     // SETTERS
 }
