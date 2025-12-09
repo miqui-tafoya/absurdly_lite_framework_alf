@@ -1,0 +1,193 @@
+#!/usr/bin/env php
+<?php
+include 'Core/init.php';
+define('APP_CONTROLLER', APP_ROOT . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR . 'Controller' . DIRECTORY_SEPARATOR);
+define('APP_MODEL', APP_ROOT . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR . 'Model' . DIRECTORY_SEPARATOR);
+define('APP_VIEW', APP_ROOT . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR . 'View' . DIRECTORY_SEPARATOR . 'Content' . DIRECTORY_SEPARATOR);
+define('APP_FACTORY', APP_ROOT . DIRECTORY_SEPARATOR . 'Factory' . DIRECTORY_SEPARATOR);
+
+$shortopts = '';
+$shortopts .= 'f:';
+$shortopts .= 'q';
+$shortopts .= 's';
+$shortopts .= 'g';
+$shortopts .= 'p';
+$shortopts .= 'a';
+$shortopts .= 'c';
+$shortopts .= 'v';
+$shortopts .= 'h';
+
+$longopts = array(
+    "help",
+    "filename:",
+    "query",
+    "stringquery",
+    "get",
+    "post",
+    "ajaxpost",
+    "crud",
+    "view"
+);
+$options = getopt($shortopts, $longopts);
+
+function main($options) {
+    if (isset($options['help'])) {
+        if ($options['help'] === false) {
+            help();
+        }
+    } else {
+        if (isset($options['h'])) {
+            help();
+        } else {
+            if ((isset($options['f']) && !empty($options['f'])) or (isset($options['filename']) && !empty($options['filename']))) {
+                $route = $options['f'] ?? $options['filename'] ?? null;
+                $query = ($options['q'] ?? $options['query'] ?? true) === false;
+                $queryString = ($options['s'] ?? $options['stringquery'] ?? true) === false;
+                $get = ($options['g'] ?? $options['get'] ?? true) === false;
+                $post = ($options['p'] ?? $options['post'] ?? true) === false;
+                $postajax = ($options['a'] ?? $options['ajaxpost'] ?? true) === false;
+                $crud = ($options['c'] ?? $options['crud'] ?? true) === false;
+                $view = ($options['v'] ?? $options['view'] ?? true) === false;
+
+                $fetchControllerCode = buildController($route, $query, $queryString, $get, $post, $postajax);
+                $fetchModelCode = buildModel($route, $query, $crud);
+
+                $filenameController = APP_CONTROLLER . ucfirst($route) . '.class.php';
+                $filenameModel = APP_MODEL . ucfirst($route) . 'Model.class.php';
+                $filenameView = APP_VIEW . $route . '.tpl.php';
+                if (file_exists($filenameController)) {
+                    echo 'Controlador y Modelo para esa ruta/función ya existe' . PHP_EOL;
+                } else {
+                    if ($view == true) {
+                        touch($filenameView);
+                    }
+                    file_put_contents($filenameController, $fetchControllerCode);
+                    file_put_contents($filenameModel, $fetchModelCode);
+                }
+            }
+        }
+    }
+}
+
+function help() {
+    echo '
+        PHP Absurdly Lite Framework (ALF) MVC Factory
+        Uso:
+            build [OPCIÓN...]
+        
+        Opciones de ayuda:
+        -h, --help                      Mostrar opciones de ayuda
+
+        Opciones de la aplicación:
+        -f, --filename [nombre...]            Nombre de Ruta/Función para crear Controller y Model
+        -q, --query                           Controller y Model: Presente si Ruta/Función que debe manejar query
+        -s, --stringquery                     Controller: Presente si Ruta/Función que debe manejar queryStrings
+        -g, --get                             Controller: Añade GET
+        -p, --post                            Controller: Añade POST
+        -a, --ajaxpost                        Controller: Añade POST AJAX
+        -c, --crud                            Model: Añade CRUD al Model
+        -v, --view                            Vista: Añade una vista a Ruta
+        ' . PHP_EOL;
+}
+
+function buildModel($route, $query, $crud) {
+    $layoutModel = layoutModel();
+
+    $temp = '
+    // private function setPropiedad() {
+    //    $data = $this->getPropiedad();
+    //    $this->propiedad = $data;
+    // }';
+    $queryTemplate = $query === true ? queryModelTemplate() : noqueryModelTemplate();
+    $setterTemplate = $query === true ? setterModelTemplate() : $temp;
+
+    $crudTemplate = $crud === true ? crudModelTemplate() : '';
+
+    $templates = [ucfirst($route), $queryTemplate, $setterTemplate, $crudTemplate];
+    $markup = ['{{filename}}', '{{query}}', '{{setters}}', '{{crud}}'];
+
+    return '<?php' . PHP_EOL . str_replace($markup, $templates, $layoutModel);
+}
+
+function buildController($route, $query, $queryString, $get, $post, $postajax) {
+    $layoutController = layoutController();
+
+    $queryTemplate = $query === true ? queryControllerTemplate() : noqueryControllerTemplate();
+    $queryStringTemplate = $queryString === true ? querystringControllerTemplate() : '';
+    $getTemplate = $get === true ? getControllerTemplate() : '';
+    $postTemplate = $post === true ? postControllerTemplate() : '';
+    $postajaxTemplate = $postajax === true ? postajaxControllerTemplate(ucfirst($route)) : '';
+
+    $templates = [ucfirst($route), $getTemplate, $postTemplate, $postajaxTemplate, $queryStringTemplate, $queryTemplate];
+    $markup = ['{{filename}}', '{{get}}', '{{post}}', '{{postajax}}', '{{querystring}}', '{{values}}'];
+
+    return '<?php' . PHP_EOL . str_replace($markup, $templates, $layoutController);
+}
+
+// Model
+function layoutModel() {
+    ob_start();
+    include_once APP_FACTORY . 'model.txt';
+    return ob_get_clean();
+}
+function queryModelTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'queryprops.txt';
+    return ob_get_clean();
+}
+function noqueryModelTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'noqueryprops.txt';
+    return ob_get_clean();
+}
+function setterModelTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'setters.txt';
+    return ob_get_clean();
+}
+function crudModelTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'crud.txt';
+    return ob_get_clean();
+}
+
+// Controller
+function layoutController() {
+    ob_start();
+    include_once APP_FACTORY . 'controller.txt';
+    return ob_get_clean();
+}
+function querystringControllerTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'querystring.txt';
+    return ob_get_clean();
+}
+function queryControllerTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'query.txt';
+    return ob_get_clean();
+}
+function noqueryControllerTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'noquery.txt';
+    return ob_get_clean();
+}
+function getControllerTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'get.txt';
+    return ob_get_clean();
+}
+function postControllerTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'post.txt';
+    return ob_get_clean();
+}
+function postajaxControllerTemplate($route) {
+    $template = [ucfirst($route)];
+    $markup = ['{{filename}}'];
+    ob_start();
+    include_once 'postajax.txt';
+    return str_replace($markup, $template, ob_get_clean());
+}
+main($options);
+?>
