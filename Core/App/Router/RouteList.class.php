@@ -69,7 +69,7 @@ class RouteList {
         if (!is_callable($callback)) {
             $params[1][1] = empty($params[1][1]) ? array_merge($this->params['start'], $this->params['end']) : array_merge($this->params['start'], $params[1][1], $this->params['end']);
             $params[2][0] = empty($params[2][0]) ? $this->get : array_merge($this->get, $params[2][0]);
-            $params[2][1] = strtolower($method) === 'post' ? $_POST : [];
+            $params[3][0] = strtolower($method) === 'post' ? $_POST : [];
         }
         $this->routes[$method][$path] = [$callback, $params, $js];
     }
