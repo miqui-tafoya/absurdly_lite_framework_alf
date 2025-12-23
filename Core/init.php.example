@@ -15,7 +15,7 @@
  *
  * @package PHP Absurdly Lite Framework (PHP-ALF)
  * @author J. Miguel Tafoya R. (Miqui Tafoya) <taro.miqui@gmail.com>
- * @version 1.1.1
+ * @version 1.0.0
  */
 
 // tipado fuerte
@@ -71,9 +71,9 @@ if (session_status() === PHP_SESSION_NONE) {
  */
 define('APP_ROOT', dirname(__DIR__));
 define('COREAPP', APP_ROOT . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'App' . DIRECTORY_SEPARATOR);
-define('APP_SUBFOLDER', 'production/absurdly_lite_framework_alf');
+define('APP_SUBFOLDER', 'prod/alfv1');
 define('APP_PUBLIC', APP_ROOT . DIRECTORY_SEPARATOR . 'Public' . DIRECTORY_SEPARATOR);
-define('URL_SUB', "http://localhost/production/absurdly_lite_framework_alf/");
+define('URL_SUB', "http://localhost/prod/alfv1/");
 define('URL_BASE', "http://localhost/" . APP_SUBFOLDER . '/');
 define('URL_PUBLIC', URL_BASE . 'Public/');
 
@@ -104,7 +104,7 @@ define('MSG_ERROR', 'Error interno del servidor: intenta nuevamente la operació
  * @var string LOG_DIR
  */
 define('SITE_NAME', 'ALF Test Site');
-define('VERSION', 'v1.00');
+define('VERSION', 'v1.1.1');
 define('LOG_DIR', APP_PUBLIC . 'logs');
 
 // herramientas dev

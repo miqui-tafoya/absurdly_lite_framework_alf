@@ -45,7 +45,6 @@
 // Lógica PHP previa al render de la vista
 // Aquí puedes preparar variables, formatear datos, etc.
 $helloworld = '¡Hola Mundo!';
-
 // Ejemplo de acceso a variables foráneas desde $head, entregados por el Controlador Head
 // $dato = $head['propiedad']
 

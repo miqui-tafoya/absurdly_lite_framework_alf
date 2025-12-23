@@ -8,13 +8,13 @@
  *
  * FUNCIONALIDADES:
  * - Extracción selectiva de propiedades del modelo
- * - Procesamiento de query strings mediante métodos del modelo
- * - Validación de existencia de propiedades y métodos
+ * - Procesamiento de query strings
+ * - Validación de existencia de propiedades
  *
  * USO:
  * Los modelos específicos deben extender esta clase y definir:
  * - Propiedades públicas para datos estáticos
- * - Métodos para procesar query strings dinámicos
+ * - Procesos para query strings dinámicos
  *
  * @file Model.class.php
  * @package Model
@@ -41,7 +41,7 @@ abstract class Model {
      */
     public function fetchData($data) {
         $response = [];
-        foreach ($data as $key => $value) {
+        foreach ($data as $value) {
             if (property_exists($this, $value)) {
                 $response[$value] = $this->$value;
             }
@@ -50,23 +50,17 @@ abstract class Model {
     }
 
     /**
-     * Procesa query strings mediante métodos del modelo
+     * Procesa query strings mediante método de modelo
      *
-     * Busca un método en el modelo que coincida con $key y lo ejecuta
-     * pasándole $value como parámetro. Si el método no existe, redirige
-     * a la página principal. Útil para rutas dinámicas.
+     * Ejecuta método para procesar el conjunto de llaves y valores
+     * de el o los query strings para la ruta.
      *
-     * @param string $key Nombre del método a ejecutar
-     * @param mixed $value Valor a pasar al método
-     * @return array Resultado del método o array vacío
+     * @param mixed $data Array de query strings a pasar al método
+     * @return array Resultado del método
      */
-    public function fetchQueryStringData($key,$value) {
+    public function fetchQueryStringData($data) {
         $response = [];
-        if (method_exists($this, $key)) {
-            $response = $this->$key($value);
-        } else {
-            header("Location: " . URL_BASE);
-        }
+        $response = $this->queryStringHandler($data);
         return $response;
     }
 }

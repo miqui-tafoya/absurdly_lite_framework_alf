@@ -1,8 +1,8 @@
-    public function POST_handler_AJAX() {
+    public function GET_AJAX_handler() {
         header('Content-Type: application/json; charset=utf-8');
         $model = new {{filename}}Model;
 
-        $resultado = $model->getDatosAJAX($_POST['post_data']);
+        $resultado = $model->getDatosAJAX($_GET['get_data']);
 
         $data = array(
             'success' => true,

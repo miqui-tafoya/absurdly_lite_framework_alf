@@ -13,6 +13,12 @@ class HomeModel extends Model {
     }
 
     // GETTERS
-    
+
     // SETTERS
+
+
+    // QUERYSTRING
+    public function queryStringHandler($querystrings) {
+
+    }
 }

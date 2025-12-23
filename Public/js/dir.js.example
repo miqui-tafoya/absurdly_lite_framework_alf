@@ -28,7 +28,7 @@ const up = '../';
  * @example 'http://localhost/production/absurdly_lite_framework_alf/'
  * @example 'https://midominio.com/'
  */
-const URL_BASE = 'http://localhost/production/absurdly_lite_framework_alf/'
+const URL_BASE = 'http://localhost/prod/alfv1/'
 
 /**
  * URL del directorio público

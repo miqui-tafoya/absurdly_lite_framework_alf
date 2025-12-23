@@ -5,7 +5,7 @@
  *
  * @file index.php
  * @description Framework entry point - inicializa y arranca la aplicación
- * @version 1.1.1
+ * @version 1.2.1
  * @author J. Miguel Tafoya R. (Miqui Tafoya)
  * @license MIT
  * @copyright 2023 J. Miguel Tafoya R.
@@ -15,7 +15,7 @@
  * MIT License
  *
  * Copyright (c) 2023 J. Miguel Tafoya R. (Miqui Tafoya)
- * PHP Absurdly Lite Framework (ALF) v.1.0.0, previously PHP Lite Framework v.0.5a
+ * PHP Absurdly Lite Framework (ALF) v.1.2.1, previously PHP Lite Framework v.0.5a
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal

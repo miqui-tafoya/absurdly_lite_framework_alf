@@ -70,12 +70,12 @@
  * );
  *
  * Ruta dinámica GET (con parámetro):
- * $routeList->add('get', '/usuario/', 'usuario', ['main', ['Usuario', []], []], []);
+ * $routeList->add('get', '/usuario/{id}', 'usuario', ['main', ['Usuario', []], [[],[]]], []);
  *
  * Pseudoruta con función (AJAX):
  * $routeList->add('post', '/api/guardar', function() {
  *     MainCtrl::guardarDatos();
- * }, ['', ['', []], []], []);
+ * }, ['', ['', []], [[],[]]], []);
  *
  * - Instancia Controllers
  *   Aquí se hace referencia a aquellos controladores que sean requerimiento para
@@ -124,8 +124,7 @@ $routeList->add(
         ['error',
                 ['Error', []],
                 [[],
-                        []]
-        ],
+                        []]],
         []
 );
 
@@ -136,8 +135,7 @@ $routeList->add(
         ['main',
                 ['Inicio', []],
                 [[],
-                        []]
-        ],
+                        ['hola']]],
         []
 );
 
@@ -147,7 +145,7 @@ $routeList->add(
 //         'get',
 //         '/ejemplo',
 //         'ejemplo',
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -155,7 +153,7 @@ $routeList->add(
 //         'post',
 //         '/ejemplo',
 //         'ejemplo',
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -164,7 +162,9 @@ $routeList->add(
 //         '/ejemplo/',
 //         'ejemplo',
 //         ['main',
-//         ['', ['', []], [[], []]],
+//                 ['Inicio', ['interstyle']],
+//                 [['head' => []],
+//                         []]],
 //         []
 // );
 
@@ -173,7 +173,9 @@ $routeList->add(
 //         '/ejemplo/',
 //         'ejemplo',
 //         ['main',
-//         ['', ['', []], [[], []]],
+//                 ['Inicio', ['interstyle']],
+//                 [['head' => []],
+//                         []]],
 //         []
 // );
 
@@ -186,7 +188,7 @@ $routeList->add(
 //                 MainCtrl::logout();
 //                 header('Location: ' . URL_BASE);
 //         },
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -197,7 +199,7 @@ $routeList->add(
 //                 $post = new Ejemplo;
 //                 $post->GET_handler_AJAX();
 //         },
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -208,7 +210,7 @@ $routeList->add(
 //                 $post = new Ejemplo;
 //                 $post->POST_handler_AJAX();
 //         },
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -218,7 +220,7 @@ $routeList->add(
 //         'get',
 //         '/apitest',
 //         'apitest',
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );
 
@@ -226,6 +228,6 @@ $routeList->add(
 //         'post',
 //         '/apilogin',
 //         'apilogin',
-//         ['', ['', []], [[], []]],
+//         ['', ['', []], [[],[]]],
 //         []
 // );

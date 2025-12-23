@@ -9,54 +9,57 @@ define('APP_FACTORY', APP_ROOT . DIRECTORY_SEPARATOR . 'Factory' . DIRECTORY_SEP
 $shortopts = '';
 $shortopts .= 'f:';
 $shortopts .= 'q';
-$shortopts .= 's';
+$shortopts .= 'd';
 $shortopts .= 'g';
 $shortopts .= 'p';
-$shortopts .= 'a';
+$shortopts .= 'ag';
+$shortopts .= 'ap';
 $shortopts .= 'c';
 $shortopts .= 'v';
 $shortopts .= 'h';
 
 $longopts = array(
-    "help",
-    "filename:",
-    "query",
-    "stringquery",
-    "get",
-    "post",
-    "ajaxpost",
-    "crud",
-    "view"
+    "FILENAME:",
+    "QUERY",
+    "DYNAMIC",
+    "GET",
+    "POST",
+    "AJAXGET",
+    "AJAXPOST",
+    "CRUD",
+    "VIEW",
+    "HELP"
 );
 $options = getopt($shortopts, $longopts);
 
 function main($options) {
-    if (isset($options['help'])) {
-        if ($options['help'] === false) {
+    if (isset($options['HELP'])) {
+        if ($options['HELP'] === false) {
             help();
         }
     } else {
         if (isset($options['h'])) {
             help();
         } else {
-            if ((isset($options['f']) && !empty($options['f'])) or (isset($options['filename']) && !empty($options['filename']))) {
-                $route = $options['f'] ?? $options['filename'] ?? null;
-                $query = ($options['q'] ?? $options['query'] ?? true) === false;
-                $queryString = ($options['s'] ?? $options['stringquery'] ?? true) === false;
-                $get = ($options['g'] ?? $options['get'] ?? true) === false;
-                $post = ($options['p'] ?? $options['post'] ?? true) === false;
-                $postajax = ($options['a'] ?? $options['ajaxpost'] ?? true) === false;
-                $crud = ($options['c'] ?? $options['crud'] ?? true) === false;
-                $view = ($options['v'] ?? $options['view'] ?? true) === false;
+            if ((isset($options['f']) && !empty($options['f'])) or (isset($options['FILENAME']) && !empty($options['FILENAME']))) {
+                $route = $options['f'] ?? $options['FILENAME'] ?? null;
+                $query = ($options['q'] ?? $options['QUERY'] ?? true) === false;
+                $dynamic = ($options['d'] ?? $options['DYNAMIC'] ?? true) === false;
+                $get = ($options['g'] ?? $options['GET'] ?? true) === false;
+                $post = ($options['p'] ?? $options['POST'] ?? true) === false;
+                $getajax = ($options['ag'] ?? $options['AJAXGET'] ?? true) === false;
+                $postajax = ($options['ap'] ?? $options['AJAXPOST'] ?? true) === false;
+                $crud = ($options['c'] ?? $options['CRUD'] ?? true) === false;
+                $view = ($options['v'] ?? $options['VIEW'] ?? true) === false;
 
-                $fetchControllerCode = buildController($route, $query, $queryString, $get, $post, $postajax);
-                $fetchModelCode = buildModel($route, $query, $crud);
+                $fetchControllerCode = buildController($route, $dynamic, $get, $post, $getajax, $postajax);
+                $fetchModelCode = buildModel($route, $query, $dynamic, $crud);
 
                 $filenameController = APP_CONTROLLER . ucfirst($route) . '.class.php';
                 $filenameModel = APP_MODEL . ucfirst($route) . 'Model.class.php';
                 $filenameView = APP_VIEW . $route . '.tpl.php';
-                if (file_exists($filenameController)) {
-                    echo 'Controlador y Modelo para esa ruta/función ya existe' . PHP_EOL;
+                if (file_exists($filenameController) OR file_exists($filenameModel)) {
+                    echo 'Controlador y/o Modelo para esa ruta/función ya existe' . PHP_EOL;
                 } else {
                     if ($view == true) {
                         touch($filenameView);
@@ -76,21 +79,22 @@ function help() {
             build [OPCIÓN...]
         
         Opciones de ayuda:
-        -h, --help                      Mostrar opciones de ayuda
+        -h, --HELP                      Mostrar opciones de ayuda
 
         Opciones de la aplicación:
-        -f, --filename [nombre...]            Nombre de Ruta/Función para crear Controller y Model
-        -q, --query                           Controller y Model: Presente si Ruta/Función que debe manejar query
-        -s, --stringquery                     Controller: Presente si Ruta/Función que debe manejar queryStrings
-        -g, --get                             Controller: Añade GET
-        -p, --post                            Controller: Añade POST
-        -a, --ajaxpost                        Controller: Añade POST AJAX
-        -c, --crud                            Model: Añade CRUD al Model
-        -v, --view                            Vista: Añade una vista a Ruta
+        -f,  --FILENAME [nombre...]            Nombre de Ruta/Función para crear Controller y Model
+        -q,  --QUERY                           Model: Agrega Función para manejo de Query Strings al Model
+        -d,  --DYNAMIC                         Controller y Model: Presente si Ruta/Función es dinámica
+        -g,  --GET                             Controller: Añade GET
+        -p,  --POST                            Controller: Añade POST
+        -ag, --AJAXGET                         Controller: Añade GET AJAX
+        -ap, --AJAXPOST                        Controller: Añade POST AJAX
+        -c,  --CRUD                            Model: Añade CRUD al Model
+        -v,  --VIEW                            Vista: Añade una vista a Ruta
         ' . PHP_EOL;
 }
 
-function buildModel($route, $query, $crud) {
+function buildModel($route, $query, $dynamic, $crud) {
     $layoutModel = layoutModel();
 
     $temp = '
@@ -98,28 +102,29 @@ function buildModel($route, $query, $crud) {
     //    $data = $this->getPropiedad();
     //    $this->propiedad = $data;
     // }';
-    $queryTemplate = $query === true ? queryModelTemplate() : noqueryModelTemplate();
-    $setterTemplate = $query === true ? setterModelTemplate() : $temp;
+    $queryTemplate = $query === true ? queryModelTemplate() : '';
+    $dynamicTemplate = $dynamic === true ? dynamicModelTemplate() : staticModelTemplate();
+    $setterTemplate = $dynamic === true ? setterModelTemplate() : $temp;
 
     $crudTemplate = $crud === true ? crudModelTemplate() : '';
 
-    $templates = [ucfirst($route), $queryTemplate, $setterTemplate, $crudTemplate];
-    $markup = ['{{filename}}', '{{query}}', '{{setters}}', '{{crud}}'];
+    $templates = [ucfirst($route), $dynamicTemplate, $setterTemplate, $crudTemplate, $queryTemplate];
+    $markup = ['{{filename}}', '{{dynamic}}', '{{setters}}', '{{crud}}', '{{query}}'];
 
     return '<?php' . PHP_EOL . str_replace($markup, $templates, $layoutModel);
 }
 
-function buildController($route, $query, $queryString, $get, $post, $postajax) {
+function buildController($route, $dynamic, $get, $post, $getajax, $postajax) {
     $layoutController = layoutController();
 
-    $queryTemplate = $query === true ? queryControllerTemplate() : noqueryControllerTemplate();
-    $queryStringTemplate = $queryString === true ? querystringControllerTemplate() : '';
+    $dynamicTemplate = $dynamic === true ? dynamicControllerTemplate() : staticControllerTemplate();
     $getTemplate = $get === true ? getControllerTemplate() : '';
     $postTemplate = $post === true ? postControllerTemplate() : '';
+    $getajaxTemplate = $getajax === true ? getajaxControllerTemplate(ucfirst($route)) : '';
     $postajaxTemplate = $postajax === true ? postajaxControllerTemplate(ucfirst($route)) : '';
 
-    $templates = [ucfirst($route), $getTemplate, $postTemplate, $postajaxTemplate, $queryStringTemplate, $queryTemplate];
-    $markup = ['{{filename}}', '{{get}}', '{{post}}', '{{postajax}}', '{{querystring}}', '{{values}}'];
+    $templates = [ucfirst($route), $getTemplate, $postTemplate, $getajaxTemplate, $postajaxTemplate, $dynamicTemplate];
+    $markup = ['{{filename}}', '{{get}}', '{{post}}', '{{getajax}}', '{{postajax}}', '{{values}}'];
 
     return '<?php' . PHP_EOL . str_replace($markup, $templates, $layoutController);
 }
@@ -130,14 +135,19 @@ function layoutModel() {
     include_once APP_FACTORY . 'model.txt';
     return ob_get_clean();
 }
-function queryModelTemplate() {
+function staticModelTemplate() {
     ob_start();
-    include_once APP_FACTORY . 'queryprops.txt';
+    include_once APP_FACTORY . 'staticprops.txt';
     return ob_get_clean();
 }
-function noqueryModelTemplate() {
+function dynamicModelTemplate() {
     ob_start();
-    include_once APP_FACTORY . 'noqueryprops.txt';
+    include_once APP_FACTORY . 'dynamicprops.txt';
+    return ob_get_clean();
+}
+function queryModelTemplate() {
+    ob_start();
+    include_once APP_FACTORY . 'query.txt';
     return ob_get_clean();
 }
 function setterModelTemplate() {
@@ -157,19 +167,14 @@ function layoutController() {
     include_once APP_FACTORY . 'controller.txt';
     return ob_get_clean();
 }
-function querystringControllerTemplate() {
+function staticControllerTemplate() {
     ob_start();
-    include_once APP_FACTORY . 'querystring.txt';
+    include_once APP_FACTORY . 'static.txt';
     return ob_get_clean();
 }
-function queryControllerTemplate() {
+function dynamicControllerTemplate() {
     ob_start();
-    include_once APP_FACTORY . 'query.txt';
-    return ob_get_clean();
-}
-function noqueryControllerTemplate() {
-    ob_start();
-    include_once APP_FACTORY . 'noquery.txt';
+    include_once APP_FACTORY . 'dynamic.txt';
     return ob_get_clean();
 }
 function getControllerTemplate() {
@@ -187,6 +192,13 @@ function postajaxControllerTemplate($route) {
     $markup = ['{{filename}}'];
     ob_start();
     include_once 'postajax.txt';
+    return str_replace($markup, $template, ob_get_clean());
+}
+function getajaxControllerTemplate($route) {
+    $template = [ucfirst($route)];
+    $markup = ['{{filename}}'];
+    ob_start();
+    include_once 'getajax.txt';
     return str_replace($markup, $template, ob_get_clean());
 }
 main($options);

@@ -4,11 +4,12 @@ use Model\Database;
 
 class {{filename}}Model extends Model {
 
-{{query}}
+{{dynamic}}
 
     // SETTERS
 {{setters}}
 
-    // SEND
 {{crud}}
+
+{{query}}
 }
