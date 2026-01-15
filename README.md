@@ -5,6 +5,7 @@ This README is a work in progress...
 
 This is the release version v1 of ALF (Absurdly Lite Framework). It has been tested and successfully deployed on Apache servers running PHP 8.2.
 Its routing engine supports AJAX calls, function calls, as well as regular GET/POST requests. API endpoints can also be created using this routing engine.
+The project includes the mvc-generator-1.0.0, a Java CLI app that works for unix-like systems (Linux, Mac) by executing it through the ./build script, or on Windows systems by running the build.bat script.
 
 ## Initial Setup
 

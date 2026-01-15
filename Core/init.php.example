@@ -81,16 +81,20 @@ define('URL_PUBLIC', URL_BASE . 'Public/');
 /**
  * Activación de Autoloader de Composer y del Modo de depuración
  *
- * Si COMPOSER está en true, se activa el autoloader de Composer.
+ * Si COMPOSER está en true, se activa el autoloader de Composer (Public/vendor/autodoad.php).
+ * Todo lo instalado por Composer deberá existir dentro de Public/vendor.
  * Si DEBUG está en true, se muestran errores detallados y se activan herramientas dev opcionales.
+ * Si PRODUCTION está en false, se cancela el caché, para ver todos los cambios de inmediato.
  * Define el mensaje que verán los usuarios para errores fatales del sistema.
  *
  * @var bool COMPOSER
  * @var bool DEBUG
+ * @var bool PRODUCTION
  * @var string MSG_ERROR
  */
 define('COMPOSER', false);
 define('DEBUG', true);
+define('PRODUCTION', false);
 define('MSG_ERROR', 'Error interno del servidor: intenta nuevamente la operación; si el error persiste, por favor contacta a Soporte TI.');
 
 // constantes secundarias
@@ -109,6 +113,11 @@ define('LOG_DIR', APP_PUBLIC . 'logs');
 
 // herramientas dev
 error_reporting(E_ALL);
+if (PRODUCTION === false) {
+    header("Cache-Control: no-cache, no-store, must-revalidate");
+    header("Pragma: no-cache");
+    header("Expires: 0");
+}
 if (DEBUG === true) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);

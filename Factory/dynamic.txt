@@ -1,7 +1,0 @@
-    public function values($params, $query) {
-        $clase = explode('\\', __CLASS__);
-        $buildClass = '\\Model\\' . ucfirst($clase[1]) . 'Model';
-        $load = new $buildClass($query);
-        $valores = $load->fetchData($params);
-        return $valores;
-    }
