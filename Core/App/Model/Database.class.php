@@ -215,14 +215,16 @@ class Database {
    * - Filtros WHERE con operadores = o != (prefijo !)
    * - LEFT/RIGHT JOINs con UNION automático
    * - ORDER BY con múltiples columnas y direcciones
-   * - LIMIT para uno, varios o todos los registros
+   * - Filtros para uno, varios o todos los registros
+   * - Límites y offset para implementar, por ejemplo, un sistema de paginación
    *
-   * @param string $type Tipo de resultado: 'one', 'all', o número (LIMIT)
+   * @param string $type Tipo de resultado: 'one' para un array simple con un solo registro, 'all' para un array asociativo de muchos registros, 'limit' para establecer un "limit y offset" (por ejemplo para implementar paginación), o un entero para limitar la cantidad de resultados a ese número fijo
    * @param bool|array $join false o ['cols' => [...], 'on' => [...]]
    * @param array|string $cols Columnas a seleccionar o 'all'
    * @param string $table Nombre de la tabla
    * @param array $data Filtros WHERE ['columna' => 'valor', '!columna' => 'valor']
    * @param array $order ORDER BY ['ASC' => 'columna', 'DESC2' => 'columna2']
+   * @param array $limits ORDER BY ['ASC' => 'columna', 'DESC2' => 'columna2']
    * @return array Registros encontrados
    *
    * @example
@@ -252,11 +254,20 @@ class Database {
    *         ];
    * $variable = 1;
    * $db->dbCall('all', $join, false, false, ['id_usuarios' => $variable], []);
+   * 
+   * @example 
+   * // SELECT para todas las coincidencias, con filtros, ordenamiento y límite con offset para implementar paginación
+   * $page = max(1, (int) $page);
+   * $perPage = max(1, (int) $perPage);
+   * $offset = ($page - 1) * $perPage;
+   * 
+   * $cols = ['all'];
+   * $data = ['tipo' => 'noticias', 'publicado' => 1, 'categoria' => $categoria];
+   * $order = ['DESC' => 'timestamp'];
+   * $limits = ['limit' => $perPage, 'offset' => $offset];
+   * $db->dbCall('limit', false, $cols, 'tb_entradas', $data, $order, $limits);
    */
-  public function dbCall(string $type, $join, $cols, string $table, $data = [], $order = []) {
-    $type = $this->validaLimite($type);
-    $table = $this->validaIdentificador($table, 'table');
-
+  public function dbCall(string $type, $join, $cols, string $table, $data = [], $order = [], $limits = []) {
     $sql = "SELECT ";
     $i = 0;
     if (!is_array($join) && $join === false) {
@@ -264,7 +275,6 @@ class Database {
         $sql .= "*";
       } else {
         foreach ($cols as $key => $value) {
-          $value = $this->validaIdentificador($value, 'column');
           if ($i === 0) {
             $sql .= " $value";
           } else {
@@ -275,11 +285,9 @@ class Database {
       }
     } else {
       foreach ($join['cols'] as $key => $value) {
-        $key = $this->validaIdentificador($key, 'table');
         if (preg_match('/[,]/', $value)) {
           $join['cols'] = explode(",", $value);
           foreach ($join['cols'] as $subkey => $subvalue) {
-            $subvalue = trim($this->validaIdentificador($subvalue, 'column'));
             if ($i === 0) {
               $sql .= " $key.$subvalue";
             } else {
@@ -290,8 +298,6 @@ class Database {
         } else {
           if ($value === 'all') {
             $value = "*";
-          } else {
-            $value = $this->validaIdentificador($value, 'column');
           }
           if ($i === 0) {
             $sql .= " $key.$value";
@@ -309,7 +315,6 @@ class Database {
         foreach ($data as $key => $value) {
           $but = preg_match('/^!/', $key) ? true : false;
           $key = ($but === true) ? substr($key, 1) : $key;
-          $key = $this->validaIdentificador($key, 'column');
           if ($i === 0) {
             $sql .= " WHERE $key";
             $sql .= ($but === true) ? '!=?' : '=?';
@@ -323,7 +328,6 @@ class Database {
     } else {
       $i = 0;
       foreach ($join['on'] as $key => $value) {
-        $key = $this->validaIdentificador($key, 'table');
         if ($i === 0) {
           $sql .= " $key LEFT JOIN";
         } else {
@@ -362,16 +366,20 @@ class Database {
     if (!empty($order)) {
       $i = 0;
       foreach ($order as $key => $value) {
-        $value = $this->validaIdentificador($value, 'column');
-        $key = $this->validaOrden($key);
         if ($i === 0) {
           $sql .= ' ORDER BY ' . $value;
-          if (!empty($key)) {
-            $sql .= ' ' . $key;
+          if (preg_match('/\d+/', $key) == true) {
+            $key = preg_replace('/\d+/', '', $key);
           }
+          $sql .= ' ' . $key;
         } else {
+          $null = preg_match('/NULL/', $key) ? true : false;
+          $key = ($null === true) ? '' : $key;
           $sql .= ', ' . $value;
-          if (!empty($key)) {
+          if ($null === false) {
+            if (preg_match('/\d+/', $key) == true) {
+              $key = preg_replace('/\d+/', '', $key);
+            }
             $sql .= ' ' . $key;
           }
         }
@@ -382,6 +390,19 @@ class Database {
       $sql .= " LIMIT 1";
       $stmt = $this->exeQuery($sql, $data);
       $records = $stmt->get_result()->fetch_assoc();
+    } elseif ($type == 'limit') {
+      $limit = isset($limits['limit']) ? (int) $limits['limit'] : 0;
+      $offset = isset($limits['offset']) ? (int) $limits['offset'] : 0;
+      $sql .= " LIMIT $limit";
+      $sql .= " OFFSET $offset";
+      if (empty($data)) {
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        $records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+      } else {
+        $stmt = $this->exeQuery($sql, $data);
+        $records = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+      }
     } elseif ($type == 'all') {
       if (empty($data)) {
         $stmt = $this->conn->prepare($sql);
@@ -404,6 +425,68 @@ class Database {
       }
     }
     return $records;
+  }
+
+  /**
+   * Consulta SELECT COUNT para conteo de registros con filtros
+   *
+   * Construye y ejecuta una query de conteo (COUNT(*)) con soporte para:
+   * - Filtros WHERE con operadores = o != (usando el prefijo ! en la llave)
+   * - Retorno directo del valor numérico total
+   *
+   * @param string $table Nombre de la tabla
+   * @param array $data Filtros WHERE opcionales ['columna' => 'valor', '!columna' => 'valor']
+   * @return int Cantidad total de registros encontrados
+   *
+   * @example
+   * // Conteo simple de todos los registros en una tabla
+   * $total = $db->dbCount('tabla_usuarios');
+   * 
+   * @example
+   * // Conteo con filtros específicos (usuarios activos de una categoría)
+   * $filtros = ['activo' => 1, 'categoria' => 'premium'];
+   * $total = $db->dbCount('tabla_usuarios', $filtros);
+   * 
+   * @example
+   * // Conteo excluyendo registros (usuarios que no sean administradores)
+   * $total = $db->dbCount('tabla_usuarios', ['!rol' => 'admin']);
+   * 
+   * @example
+   * // Uso típico para sistemas de paginación (conteo de noticias publicadas)
+   * $condiciones = [
+   *     'tipo' => 'noticia',
+   *     'publicado' => 1,
+   *     'categoria' => $categoria
+   * ];
+   * $totalRegistros = $db->dbCount('tb_entradas', $condiciones);
+   */
+  public function dbCount(string $table, $data = []) {
+    $sql = "SELECT COUNT(*) as total FROM $table";
+    if (!empty($data)) {
+      $i = 0;
+      foreach ($data as $key => $value) {
+        $but = preg_match('/^!/', $key) ? true : false;
+        $key = ($but === true) ? substr($key, 1) : $key;
+
+        if ($i === 0) {
+          $sql .= " WHERE $key";
+          $sql .= ($but === true) ? '!=?' : '=?';
+        } else {
+          $sql .= " AND $key";
+          $sql .= ($but === true) ? '!=?' : '=?';
+        }
+        $i++;
+      }
+    }
+    if (empty($data)) {
+      $stmt = $this->conn->prepare($sql);
+      $stmt->execute();
+      $result = $stmt->get_result()->fetch_assoc();
+    } else {
+      $stmt = $this->exeQuery($sql, $data);
+      $result = $stmt->get_result()->fetch_assoc();
+    }
+    return $result['total'];
   }
 
   /**

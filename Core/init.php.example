@@ -20,6 +20,10 @@
 
 // tipado fuerte
 declare(strict_types=1);
+define('ALF_VERSION', 'v1.2.3');
+// detección de protocolo y dominio
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+$domain = $_SERVER['HTTP_HOST'];
 // timezone
 date_default_timezone_set("America/Mexico_City");
 // session
@@ -76,6 +80,8 @@ define('APP_PUBLIC', APP_ROOT . DIRECTORY_SEPARATOR . 'Public' . DIRECTORY_SEPAR
 define('URL_SUB', "http://localhost/prod/alfv1/");
 define('URL_BASE', "http://localhost/" . APP_SUBFOLDER . '/');
 define('URL_PUBLIC', URL_BASE . 'Public/');
+define('SITE_URL', $protocol . $domain);
+define('SITE_URL_BASE', $protocol . $domain . URL_BASE);
 
 // constantes de configuración
 /**
@@ -108,7 +114,7 @@ define('MSG_ERROR', 'Error interno del servidor: intenta nuevamente la operació
  * @var string LOG_DIR
  */
 define('SITE_NAME', 'ALF Test Site');
-define('VERSION', 'v1.1.1');
+define('VERSION', 'versión-de-tu-proyecto');
 define('LOG_DIR', APP_PUBLIC . 'logs');
 
 // herramientas dev

@@ -68,6 +68,7 @@ class Router {
             switch ($method) {
                 case 'get':
                 case 'post':
+                case 'options':
                     if ($get_position !== false) {
                         $query_string = $this->parseQuery($raw_path); // obtiene los queries del query string
                         $raw_path = \substr($raw_path, 0, $get_position);

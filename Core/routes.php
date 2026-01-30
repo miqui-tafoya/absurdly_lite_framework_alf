@@ -216,6 +216,14 @@ $routeList->add(
 
 // API endpoints
 
+$routeList->add(
+        'get',
+        '/frameworkversion',
+        'frameworkversion',
+        ['', ['', []], [[], []]],
+        []
+);
+
 // $routeList->add(
 //         'get',
 //         '/apitest',

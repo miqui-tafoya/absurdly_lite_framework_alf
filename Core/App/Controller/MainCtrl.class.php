@@ -8,18 +8,19 @@
  * y valida modelos para rutas dinámicas.
  *
  * RESPONSABILIDADES:
- * - Procesar parámetros de rutas GET/POST
+ * - Procesar parámetros de rutas GET/POST/OPTIONS
  * - Extraer valores de módulos globales y locales
  * - Procesar query strings estáticos y dinámicos
  * - Validar existencia de modelos en rutas dinámicas
  * - Instanciar controladores específicos y ejecutar handlers
  *
  * FLUJO DE PROCESAMIENTO:
- * 1. Recibe ruta desde Router
- * 2. Procesa módulos GET globales y locales
- * 3. Procesa query strings si existen
- * 4. Construye controlador específico
- * 5. Ejecuta GET_handler() o POST_handler()
+ * 1. Procesa OPTIONS
+ * 2. Recibe ruta desde Router
+ * 3. Procesa módulos GET globales y locales
+ * 4. Procesa query strings si existen
+ * 5. Construye controlador específico
+ * 6. Ejecuta GET_handler() o POST_handler()
  *
  * @file MainCtrl.class.php
  * @package Controller
@@ -41,7 +42,22 @@ class MainCtrl {
    * @return mixed Resultado del handler del controlador
    */
   public function fetchController($route, $method, $querystring) {
+    if ($method == 'options') { // OPTIONS
+      $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+      $baseDomain = str_replace(['https://', 'http://', 'www.'], '', SITE_URL);
+
+      if (strpos($origin, $baseDomain) !== false) {
+        header("Access-Control-Allow-Origin: $origin");
+      }
+
+      header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+      header("Access-Control-Allow-Headers: Content-Type");
+      http_response_code(200);
+      exit;
+    }
+
     $route[1][1]['route'] = $route[0]; // agrega ruta a MetaParams
+
     if ($method == 'get') { // GET
       if (!empty($route[1][2])) {
         if (!array_key_exists('query', $route[1][2][1])) { // la ruta NO tiene query dinámico
@@ -164,19 +180,7 @@ class MainCtrl {
     return $selectedObject->validateId($path);
   }
 
-  /**
-   * ========================================
-   * FUNCIONES PERSONALIZADAS
-   * ========================================
-   *
-   * Esta sección contiene funciones estáticas de utilidad que pueden
-   * ser reutilizadas en todo el proyecto mediante MainCtrl::nombreFuncion().
-   *
-   * Ejemplos incluidos:
-   * - pushAssoc(): Agregar elemento a array asociativo
-   * - arrayassoc_unique(): Eliminar duplicados de array multidimensional
-   * - getRand(): Generar strings aleatorios
-   */
+  /////////////Funciones Personalizadas
 
   public static function pushAssoc($array, $key, $value) {
     $array[$key] = $value;
